@@ -9,7 +9,7 @@ WorldMapGDP = function(_parentElement, _data) {
     this.parentElement = _parentElement;
     this.data = _data;
     this.width = 700,
-        this.height = 500;
+    this.height = 500;
     this.initVis();
 }
 
@@ -20,6 +20,15 @@ WorldMapGDP = function(_parentElement, _data) {
 
 WorldMapGDP.prototype.initVis = function() {
     var vis = this;
+    var domain=["Western Europe","Central and Eastern Europe", "North America", "Latin America and Caribbean",
+    "Australia and New Zealand", "Middle East and Northern Africa", "Sub-Saharan Africa", "Southeastern Asia", "Eastern Asia", 
+    "Southern Asia"]
+    var range=["#dfabf5","#9d98fa","#6094e0", "#6fd6c7", "#6fd689", "#a8d66f", "#e0c975", "#eba063", "#db564f", "#db4f9e"]
+    vis.colorPalette = vis.colorScale = d3.scaleOrdinal()
+    .domain(domain).range(range);
+
+        
+
 
     vis.wrangleData();
 }
@@ -47,10 +56,7 @@ WorldMapGDP.prototype.wrangleData = function() {
 
 WorldMapGDP.prototype.updateVis = function() {
     var vis = this;
-    console.log("aAa");
     // Analyze the dataset in the web console
-    console.log(vis.data);
-    console.log("Countries: " + vis.data.length)
 
     //this is where I should deal with all stuff.
 
@@ -62,7 +68,7 @@ WorldMapGDP.prototype.updateVis = function() {
         //d["Income"] = +d["Income"];
         //d["Population"] = +d["Population"];
         d["Happiness Rank"] = +d["Happiness Rank"];
-        d["Happiness Score"] = +d["Happiness Score"];
+        d["Happiness_Score"] = +d["Happiness_Score"];
         d["Standard Error"] = +d["Standard Error"];
         d["Economy (GDP per Capita)"] = +d["Economy (GDP per Capita)"];
         d["Family"] = +d["Family"];
@@ -76,7 +82,7 @@ WorldMapGDP.prototype.updateVis = function() {
 
     let padding = 20;
 
-    var svg = d3.select("#gdp-happiness-map")
+    var svg = d3.select("#" + vis.parentElement)
         .append("svg")
         .attr("width", vis.width)
         .attr("height", vis.height);
@@ -87,41 +93,23 @@ WorldMapGDP.prototype.updateVis = function() {
 
 
     var yScale = d3.scaleLinear() // scaleLinear is used for linear data
-        .domain([d3.min(vis.data, function(d) { return d["Happiness Score"]; }) - 3, d3.max(vis.data, function(d) { return d["Happiness Score"]; }) + 3]) // input
+        .domain([d3.min(vis.data, function(d) { return d["Happiness_Score"]; }) - 3, d3.max(vis.data, function(d) { return d["Happiness_Score"]; }) + 3]) // input
         .range([vis.height - padding / 2, padding / 2]); // output
 
 
-
-
-    let colorPalette = d3.scaleOrdinal(d3.schemePaired);
-
-    colorPalette
-        .domain(vis.data.map(function(d) {
-            return d.Region;
-        }))
-
-    console.log(colorPalette.range());
-
-    console.log(colorPalette.domain());
-
-    console.log(colorPalette("South Asia"))
-    console.log(colorPalette("America"))
 
     svg.selectAll("circle")
         .data(vis.data) // parse through our data
         .enter()
         .append("circle") // create place holder each data item and replace with rect
-        .style("fill", function(d) { return "green"; /*colorPalette(d.Region);*/ })
+        .style("fill", function(d) { return vis.colorPalette(d.Region);})
         .style("stroke", "steelblue")
         .attr("cx", function(d) { return xScale(d["Economy (GDP per Capita)"]) * 10; }) // use xScale to find x position 
-        .attr("cy", function(d) { return yScale(d["Happiness Score"]); }) // use yScale to find y position
+        .attr("cy", function(d) { return yScale(d["Happiness_Score"]); }) // use yScale to find y position
         .attr("r", function(d) {
-            console.log()
-            return d["Happiness Score"] * 3;
+            return d["Happiness_Score"] * 2;
         });
 
-    console.log(xScale(50000))
-    console.log(yScale(50))
 
     // Create an axis function specifying orientation (top, bottom, left, right)
     let xAxis = d3.axisBottom();
